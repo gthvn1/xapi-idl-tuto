@@ -8,38 +8,55 @@ fn typeToStr(ty: datamodel.Type) []const u8 {
     };
 }
 
+fn typeToFmt(ty: datamodel.Type) []const u8 {
+    return switch (ty) {
+        .string => "{s}",
+        .int => "{d}",
+    };
+}
+
 fn genClient(io: std.Io) !void {
     const cwd = std.Io.Dir.cwd();
-    const file = try cwd.createFile(io, "generated/client.ml", .{});
+    const file = try cwd.createFile(io, "generated/client.zig", .{});
     defer file.close(io);
 
     var buf: [4096]u8 = undefined;
     var file_writer = file.writer(io, &buf);
     const writer = &file_writer.interface;
 
-    try writer.writeAll("Generate client.ml on stderr for now\n");
-    try writer.flush();
+    try writer.writeAll("const std = @import(\"std\");\n");
+    try writer.writeAll("const rpc = @import(\"../src/rpc.zig\");\n\n");
 
     for (datamodel.all_objects) |obj| {
+        try writer.print("pub const {s} = struct {{\n", .{obj.name});
         for (obj.methods) |method| {
-            std.debug.print("pub fn {s}(conn: std.net.Stream", .{method.name});
-            for (method.params) |param| {
-                std.debug.print(",{s}: {s}", .{ param.name, typeToStr(param.ty) });
-            }
-            std.debug.print(") !{s} {{\n", .{typeToStr(method.result)});
+            try writer.print("    pub fn {s}(conn: std.net.Stream", .{method.name});
+            // always ask for a buffer. If the result is a int the caller will read it as
+            // a string in buf.
+            try writer.print(", buf: []u8", .{});
 
-            std.debug.print("  var response: []u8;\n", .{});
-            std.debug.print("  send(\"{s}.{s}\");\n", .{ datamodel.host_object.name, method.name });
             for (method.params) |param| {
-                std.debug.print("  send(\"{s}={{s}}\", .{{ {s} }});\n", .{ param.name, param.name });
+                try writer.print(", {s}: {s}", .{ param.name, typeToStr(param.ty) });
+            }
+            try writer.print(") !usize {{\n", .{});
+
+            try writer.print("        rpc.send(conn, \"{s}.{s}\", .{{}});\n", .{ obj.name, method.name });
+            for (method.params) |param| {
+                try writer.print("        rpc.send(conn, \"{s}={s}\", .{{ {s} }});\n", .{
+                    param.name,
+                    typeToFmt(param.ty),
+                    param.name,
+                });
             }
 
-            std.debug.print("  send(\"\");\n", .{});
-            std.debug.print("  read(response);\n", .{});
-            std.debug.print("  return response;\n", .{});
-            std.debug.print("}}\n", .{});
+            try writer.print("        rpc.sendEnd(conn);\n", .{});
+            try writer.print("        return rpc.receive(conn, buf);\n", .{});
+            try writer.print("    }}\n", .{});
         }
+        try writer.print("}};\n", .{});
     }
+
+    try writer.flush();
 }
 
 fn genServer() !void {
