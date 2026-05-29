@@ -30,7 +30,7 @@ fn genClient(io: std.Io) !void {
     for (datamodel.all_objects) |obj| {
         try writer.print("pub const {s} = struct {{\n", .{obj.name});
         for (obj.methods) |method| {
-            try writer.print("    pub fn {s}(conn: std.net.Stream", .{method.name});
+            try writer.print("    pub fn {s}(io: std.Io, conn: std.Io.net.Stream", .{method.name});
             // always ask for a buffer. If the result is a int the caller will read it as
             // a string in buf.
             try writer.print(", buf: []u8", .{});
@@ -40,17 +40,17 @@ fn genClient(io: std.Io) !void {
             }
             try writer.print(") !usize {{\n", .{});
 
-            try writer.print("        rpc.send(conn, \"{s}.{s}\", .{{}});\n", .{ obj.name, method.name });
+            try writer.print("        try rpc.send(io, conn, \"{s}.{s}\", .{{}});\n", .{ obj.name, method.name });
             for (method.params) |param| {
-                try writer.print("        rpc.send(conn, \"{s}={s}\", .{{ {s} }});\n", .{
+                try writer.print("        try rpc.send(io, conn, \"{s}={s}\", .{{ {s} }});\n", .{
                     param.name,
                     typeToFmt(param.ty),
                     param.name,
                 });
             }
 
-            try writer.print("        rpc.sendEnd(conn);\n", .{});
-            try writer.print("        return rpc.receive(conn, buf);\n", .{});
+            try writer.print("        try rpc.sendEnd(io, conn);\n", .{});
+            try writer.print("        return try rpc.receive(io, conn, buf);\n", .{});
             try writer.print("    }}\n", .{});
         }
         try writer.print("}};\n", .{});
