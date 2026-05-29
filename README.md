@@ -1,3 +1,4 @@
+- We are using `zig 0.16.0`
 - format: `zig fmt src`
 - build: `zig build`
   - It will generate `generated/client.zig`
