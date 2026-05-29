@@ -1,4 +1,4 @@
-gen-api
+.zig-cache/
+zig-out/
 generated/
 ocaml_code/
-.zig-cache/
