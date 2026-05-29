@@ -1,0 +1,3 @@
+- format: `zig fmt src`
+- build: `zig build-exe src/gen-api.zig`
+- resume session: `claude --resume 3cc9ed07-73cd-43b6-8735-89ff0c7040f7`

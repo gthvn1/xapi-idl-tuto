@@ -1,0 +1,4 @@
+gen-api
+generated/
+ocaml_code/
+.zig-cache/
