@@ -17,7 +17,7 @@ fn typeToFmt(ty: datamodel.Type) []const u8 {
 
 fn genClient(io: std.Io) !void {
     const cwd = std.Io.Dir.cwd();
-    const file = try cwd.createFile(io, "src/client_gen.zig", .{});
+    const file = try cwd.createFile(io, "src/datamodel_client_gen.zig", .{});
     defer file.close(io);
 
     var buf: [4096]u8 = undefined;
@@ -57,11 +57,11 @@ fn genClient(io: std.Io) !void {
     }
 
     try writer.flush();
-    std.debug.print("Generate src/client_gen.zig: DONE\n", .{});
+    std.debug.print("Generate src/datamodel_client_gen.zig: DONE\n", .{});
 }
 
 fn genServer() !void {
-    std.debug.print("Generate src/server_gen.zig: TODO\n", .{});
+    std.debug.print("Generate src/datamodel_server_gen.zig: TODO\n", .{});
 }
 
 pub fn main(init: std.process.Init) !void {

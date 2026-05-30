@@ -1,4 +1,5 @@
 .zig-cache/
 zig-out/
 ocaml_code/
-src/client_gen.zig
+src/datamodel_client_gen.zig
+src/datamodel_server_gen.zig

@@ -1,7 +1,7 @@
 - We are using `zig 0.16.0`
 - format: `zig fmt src`
 - build: `zig build`
-  - It will generate `src/client_gen.zig` and `src/server_gen.zig`
+  - It will generate `src/datamodel_client_gen.zig` and `src/datamodel_server_gen.zig`
 
 ---
 
