@@ -17,5 +17,18 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(gen_api_exe);
 
     const run_gen = b.addRunArtifact(gen_api_exe);
-    b.getInstallStep().dependOn(&run_gen.step);
+
+    const client_exe = b.addExecutable(.{
+        .name = "client",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/client.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    client_exe.step.dependOn(&run_gen.step);
+    b.installArtifact(client_exe);
+
+    b.getInstallStep().dependOn(&client_exe.step);
 }

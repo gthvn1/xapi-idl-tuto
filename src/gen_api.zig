@@ -17,7 +17,7 @@ fn typeToFmt(ty: datamodel.Type) []const u8 {
 
 fn genClient(io: std.Io) !void {
     const cwd = std.Io.Dir.cwd();
-    const file = try cwd.createFile(io, "generated/client.zig", .{});
+    const file = try cwd.createFile(io, "src/client_gen.zig", .{});
     defer file.close(io);
 
     var buf: [4096]u8 = undefined;
@@ -25,7 +25,7 @@ fn genClient(io: std.Io) !void {
     const writer = &file_writer.interface;
 
     try writer.writeAll("const std = @import(\"std\");\n");
-    try writer.writeAll("const rpc = @import(\"../src/rpc.zig\");\n\n");
+    try writer.writeAll("const rpc = @import(\"rpc.zig\");\n\n");
 
     for (datamodel.all_objects) |obj| {
         try writer.print("pub const {s} = struct {{\n", .{obj.name});

@@ -1,4 +1,4 @@
 .zig-cache/
 zig-out/
-generated/
 ocaml_code/
+src/client_gen.zig
