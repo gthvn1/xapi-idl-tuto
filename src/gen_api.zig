@@ -42,7 +42,7 @@ fn genClient(io: std.Io) !void {
 
             try writer.print("        try rpc.send(io, conn, \"{s}.{s}\", .{{}});\n", .{ obj.name, method.name });
             for (method.params) |param| {
-                try writer.print("        try rpc.send(io, conn, \"{s}={s}\", .{{ {s} }});\n", .{
+                try writer.print("        try rpc.send(io, conn, \"{s}={s}\", .{{{s}}});\n", .{
                     param.name,
                     typeToFmt(param.ty),
                     param.name,
@@ -57,18 +57,15 @@ fn genClient(io: std.Io) !void {
     }
 
     try writer.flush();
+    std.debug.print("Generate src/client_gen.zig: DONE\n", .{});
 }
 
 fn genServer() !void {
-    std.debug.print("server.zig: wip\n", .{});
+    std.debug.print("Generate src/server_gen.zig: TODO\n", .{});
 }
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
-    const cwd = std.Io.Dir.cwd();
-    cwd.createDir(io, "generated", .default_dir) catch |err| {
-        if (err != std.Io.Dir.CreateDirError.PathAlreadyExists) return err;
-    };
     try genClient(io);
     try genServer();
 }
