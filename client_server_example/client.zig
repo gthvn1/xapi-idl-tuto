@@ -21,6 +21,7 @@ pub fn main(init: std.process.Init) !void {
     var stream_writer = net.Stream.writer(s, io, &bufwriter);
     const w = &stream_writer.interface;
 
+    std.debug.print("Sending hello\n", .{});
     try w.writeAll("Hello from client\n");
     try w.flush();
 
@@ -29,7 +30,9 @@ pub fn main(init: std.process.Init) !void {
     while (i < answer.len) {
         const byte_read = try r.readSliceShort(answer[i .. i + 1]);
         if ((byte_read == 0) or (answer[i] == '\n')) break;
-        std.debug.print("one byte read: <{c}>", .{answer[i]});
         i += byte_read;
     }
+
+    std.debug.print("Received {d} bytes: {s}\n", .{ i, answer[0..i] });
+    std.debug.print("Bye\n", .{});
 }
