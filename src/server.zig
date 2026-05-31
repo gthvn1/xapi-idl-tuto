@@ -39,13 +39,23 @@ pub fn main(init: std.process.Init) !void {
             if (i == request.len) return error.RequestBufferTooSmall;
             // Check if there is another '\n'
             const another_byte_read = try r.readSliceShort(request[i .. i + 1]);
-            if ((another_byte_read == 0) or (request[i] == '\n')) break;
+            if (another_byte_read == 0) break;
+            if (request[i] == '\n') {
+                // We can drop the last '\n'
+                i = i - 1;
+                break;
+            }
             i += another_byte_read;
         } else {
             i += byte_read;
         }
     }
-    std.debug.print("Received {d} bytes: {s}\n", .{ i, request[0..i] });
+
+    // request is "name\nparam1=key1\nparam2=key2\n..."
+    var it = std.mem.splitScalar(u8, request[0..i], '\n');
+    while (it.next()) |s| {
+        std.debug.print("Found: <{s}>\n", .{s});
+    }
 
     try w.writeAll("ok\n");
     try w.flush();
