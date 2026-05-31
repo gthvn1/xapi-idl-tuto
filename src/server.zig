@@ -1,5 +1,7 @@
 const std = @import("std");
 const net = std.Io.net;
+const datamodel_server = @import("datamodel_server_gen.zig");
+const host = @import("host_impl.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -57,7 +59,25 @@ pub fn main(init: std.process.Init) !void {
         std.debug.print("Found: <{s}>\n", .{s});
     }
 
-    try w.writeAll("ok\n");
+    const FakeImpl = struct {
+        pub const Host = struct {
+            pub fn hello(hostname: []const u8, version: i64) ![]const u8 {
+                return host.helloImpl(hostname, version);
+            }
+        };
+    };
+
+    const name_fake = "Host.hello";
+    const params_fake = [_][]const u8{
+        "param1_fake=value1_fake",
+        "param2_fake=value2_fake",
+    };
+
+    const Dispatcher = datamodel_server.make(FakeImpl);
+    const result = try Dispatcher.dispatchCall(name_fake, &params_fake);
+
+    try w.writeAll(result);
+    try w.writeByte('\n');
     try w.flush();
 
     std.debug.print("Bye\n", .{});

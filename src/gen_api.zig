@@ -60,12 +60,35 @@ fn genClient(io: std.Io) !void {
     std.debug.print("Generate src/datamodel_client_gen.zig: DONE\n", .{});
 }
 
-fn genServer() !void {
-    std.debug.print("Generate src/datamodel_server_gen.zig: TODO\n", .{});
+fn genServer(io: std.Io) !void {
+    const cwd = std.Io.Dir.cwd();
+    const file = try cwd.createFile(io, "src/datamodel_server_gen.zig", .{});
+    defer file.close(io);
+
+    var buf: [4096]u8 = undefined;
+    var file_writer = file.writer(io, &buf);
+    const writer = &file_writer.interface;
+
+    try writer.writeAll("const std = @import(\"std\");\n\n");
+
+    try writer.writeAll("pub fn make(comptime Impl: type) type {\n");
+    try writer.writeAll("    return struct {\n");
+    try writer.writeAll("        pub fn dispatchCall(name: []const u8, params: []const []const u8) ![]const u8 {\n");
+    try writer.writeAll("            _ = params;\n");
+    try writer.writeAll("            return try if (std.mem.eql(u8, name, \"Host.hello\")) \n");
+    try writer.writeAll("                Impl.Host.hello(\"fake\", 1)\n");
+    try writer.writeAll("            else\n");
+    try writer.writeAll("                error.Unimplemented;\n");
+    try writer.writeAll("        }\n");
+    try writer.writeAll("    };\n");
+    try writer.writeAll("}\n");
+
+    try writer.flush();
+    std.debug.print("Generate src/datamodel_server_gen.zig: PARTIAL\n", .{});
 }
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     try genClient(io);
-    try genServer();
+    try genServer(io);
 }
