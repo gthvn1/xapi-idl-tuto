@@ -75,7 +75,7 @@ fn genServer(io: std.Io) !void {
     try writer.writeAll("    return struct {\n");
     try writer.writeAll("        pub fn dispatchCall(name: []const u8, params: []const []const u8) ![]const u8 {\n");
     try writer.writeAll("            _ = params;\n");
-    try writer.writeAll("            return try if (std.mem.eql(u8, name, \"Host.hello\")) \n");
+    try writer.writeAll("            return try if (std.mem.eql(u8, name, \"Host.hello\"))\n");
     try writer.writeAll("                Impl.Host.hello(\"fake\", 1)\n");
     try writer.writeAll("            else\n");
     try writer.writeAll("                error.Unimplemented;\n");

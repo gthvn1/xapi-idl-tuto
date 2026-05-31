@@ -55,11 +55,19 @@ pub fn main(init: std.process.Init) !void {
 
     // request is "name\nparam1=key1\nparam2=key2\n..."
     var it = std.mem.splitScalar(u8, request[0..i], '\n');
-    while (it.next()) |s| {
-        std.debug.print("Found: <{s}>\n", .{s});
+    // First we have the name
+    const name = it.next() orelse return error.NameIsMissing;
+    // And the rest is the parameters, we don't expect more than 8 parameters
+    const max_params: comptime_int = 8;
+    var params_buf: [max_params][]const u8 = undefined;
+    var idx: usize = 0;
+    while (it.next()) |param| {
+        if (idx == max_params) return error.TooManyParameters;
+        params_buf[idx] = param;
+        idx += 1;
     }
 
-    const FakeImpl = struct {
+    const Impl = struct {
         pub const Host = struct {
             pub fn hello(hostname: []const u8, version: i64) ![]const u8 {
                 return host.helloImpl(hostname, version);
@@ -67,14 +75,8 @@ pub fn main(init: std.process.Init) !void {
         };
     };
 
-    const name_fake = "Host.hello";
-    const params_fake = [_][]const u8{
-        "param1_fake=value1_fake",
-        "param2_fake=value2_fake",
-    };
-
-    const Dispatcher = datamodel_server.make(FakeImpl);
-    const result = try Dispatcher.dispatchCall(name_fake, &params_fake);
+    const Dispatcher = datamodel_server.make(Impl);
+    const result = try Dispatcher.dispatchCall(name, params_buf[0..idx]);
 
     try w.writeAll(result);
     try w.writeByte('\n');
