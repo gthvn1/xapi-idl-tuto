@@ -25,12 +25,25 @@ pub fn main(init: std.process.Init) !void {
     var stream_reader = stream.reader(io, &buffer_reader);
     const r = &stream_reader.interface;
 
-    var request: [64]u8 = undefined;
+    // We are expecting a list of items separated by '\n' and an empty one to ends the stream.
+    var request: [1024]u8 = undefined;
     var i: usize = 0;
-    while (i < request.len) {
+    while (true) {
+        if (i == request.len) return error.RequestBufferTooSmall;
+        // Read one byte
         const byte_read = try r.readSliceShort(request[i .. i + 1]);
-        if ((byte_read == 0) or (request[i] == '\n')) break;
-        i += byte_read;
+        if (byte_read == 0) break;
+        if (request[i] == '\n') {
+            // We need to check if it is an empty line and thus the end of request.
+            i += byte_read;
+            if (i == request.len) return error.RequestBufferTooSmall;
+            // Check if there is another '\n'
+            const another_byte_read = try r.readSliceShort(request[i .. i + 1]);
+            if ((another_byte_read == 0) or (request[i] == '\n')) break;
+            i += another_byte_read;
+        } else {
+            i += byte_read;
+        }
     }
     std.debug.print("Received {d} bytes: {s}\n", .{ i, request[0..i] });
 
