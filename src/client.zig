@@ -16,8 +16,13 @@ pub fn main(init: std.process.Init) !void {
 
     std.debug.print("Sending hello\n", .{});
     var answer: [64]u8 = undefined;
-    const bytes_read = try datamodel_client.Host.hello(io, s, &answer, "example", 1);
+    var bytes_read: usize = undefined;
 
+    //bytes_read = try datamodel_client.Host.enable(io, s, &answer, "example");
+    //std.debug.print("Received {d} bytes: {s}\n", .{ bytes_read, answer[0..bytes_read] });
+
+    bytes_read = try datamodel_client.VM.create(io, s, &answer, "my-vm", 1024);
     std.debug.print("Received {d} bytes: {s}\n", .{ bytes_read, answer[0..bytes_read] });
+
     std.debug.print("Bye\n", .{});
 }

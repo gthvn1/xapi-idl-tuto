@@ -16,20 +16,46 @@ pub const Method = struct {
 
 pub const Object = struct { name: []const u8, methods: []const Method };
 
-pub const all_objects = [_]Object{host_object};
+// Here is the list of all objects
+pub const all_objects = [_]Object{
+    host_object,
+    vm_object,
+};
 
 // Host Object
 pub const host_object = Object{
     .name = "Host",
-    .methods = &[_]Method{hello_method},
+    .methods = &[_]Method{ enable_host, disable_host },
 };
 
-// With one method called hello that takes a string and a int as parameter
-const hello_method = Method{
-    .name = "hello",
+const enable_host = Method{
+    .name = "enable",
+    .params = &[_]Param{.{ .name = "hostname", .ty = Type.string }},
+    .result = Type.string,
+};
+
+const disable_host = Method{
+    .name = "disable",
+    .params = &[_]Param{.{ .name = "hostname", .ty = Type.string }},
+    .result = Type.string,
+};
+
+// VM object
+pub const vm_object = Object{ .name = "VM", .methods = &[_]Method{ create_vm, destroy_vm } };
+
+const create_vm = Method{
+    .name = "create",
     .params = &[_]Param{
-        .{ .name = "hostname", .ty = Type.string },
-        .{ .name = "version", .ty = Type.int },
+        .{ .name = "name_label", .ty = Type.string },
+        .{ .name = "memory", .ty = Type.int },
+    },
+    .result = Type.string,
+};
+
+const destroy_vm = Method{
+    .name = "destroy",
+    .params = &[_]Param{
+        .{ .name = "name_label", .ty = Type.string },
     },
     .result = Type.string,
 };

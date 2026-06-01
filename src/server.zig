@@ -2,6 +2,7 @@ const std = @import("std");
 const net = std.Io.net;
 const datamodel_server = @import("datamodel_server_gen.zig");
 const host = @import("host_impl.zig");
+const vm = @import("vm_impl.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -12,6 +13,29 @@ pub fn main(init: std.process.Init) !void {
         io,
         net.IpAddress.ListenOptions{ .mode = net.Socket.Mode.stream },
     );
+
+    // Keep declaration of our Impl on top of function.
+    const Impl = struct {
+        pub const Host = struct {
+            pub fn enable(hostname: []const u8) ![]const u8 {
+                return host.enableImpl(hostname);
+            }
+            pub fn disable(hostname: []const u8) ![]const u8 {
+                return host.enableImpl(hostname);
+            }
+        };
+
+        pub const VM = struct {
+            pub fn create(vm_name: []const u8, memory: i64) ![]const u8 {
+                return vm.createImpl(vm_name, memory);
+            }
+            pub fn destroy(vm_name: []const u8) ![]const u8 {
+                return vm.destroyImpl(vm_name);
+            }
+        };
+    };
+
+    const Dispatcher = datamodel_server.make(Impl);
 
     // Accept one connection, read the string until reading EOL
     // and returns "ok\n"
@@ -67,15 +91,7 @@ pub fn main(init: std.process.Init) !void {
         idx += 1;
     }
 
-    const Impl = struct {
-        pub const Host = struct {
-            pub fn hello(hostname: []const u8, version: i64) ![]const u8 {
-                return host.helloImpl(hostname, version);
-            }
-        };
-    };
-
-    const Dispatcher = datamodel_server.make(Impl);
+    // We have the name and all parameters: we can call the dispatcher...
     const result = try Dispatcher.dispatchCall(name, params_buf[0..idx]);
 
     try w.writeAll(result);
