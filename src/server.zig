@@ -1,8 +1,8 @@
 const std = @import("std");
 const net = std.Io.net;
 const datamodel_server = @import("datamodel_server_gen.zig");
-const host = @import("host_impl.zig");
-const vm = @import("vm_impl.zig");
+const host = @import("real_impl/host.zig");
+const vm = @import("real_impl/vm.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
